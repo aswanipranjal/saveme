@@ -53,6 +53,8 @@ document.getElementById('test-btn').addEventListener('click', async () => {
   const err = validate(cfg);
   if (err) { setStatus(err, 'err'); return; }
 
+  const testBtn = document.getElementById('test-btn');
+  testBtn.disabled = true;
   setStatus('Testing…', '', false);
 
   try {
@@ -68,15 +70,42 @@ document.getElementById('test-btn').addEventListener('click', async () => {
 
     // Verify the branch exists
     const branchRes = await fetch(
-      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/branches/${cfg.branch}`,
+      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/branches/${encodeURIComponent(cfg.branch)}`,
       { headers: githubHeaders(cfg.pat) }
     );
     if (branchRes.status === 404) { setStatus(`Branch "${cfg.branch}" not found.`, 'err'); return; }
     if (!branchRes.ok)            { setStatus(`GitHub error: ${branchRes.status}`, 'err'); return; }
 
-    setStatus(`Connected to ${cfg.owner}/${cfg.repo} @ ${cfg.branch}`, 'ok');
+    // This endpoint requires Contents: write. An unattached blob verifies the
+    // token's permission without changing files, branches, or commit history.
+    // Repository permissions.push alone does not establish the PAT's scope.
+    setStatus('Checking write access…', '', false);
+    const writeRes = await fetch(
+      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/git/blobs`,
+      {
+        method: 'POST',
+        headers: { ...githubHeaders(cfg.pat), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: 'File Bookmarks write-access check\n', encoding: 'utf-8' }),
+      }
+    );
+    if (writeRes.status !== 201) {
+      if (writeRes.status === 401) {
+        setStatus('Auth failed — check your PAT.', 'err', false);
+      } else {
+        const body = await writeRes.json().catch(() => ({}));
+        setStatus(
+          `Write access not verified (${writeRes.status}). ${body.message || 'GitHub rejected the write check.'} Check that your PAT has Contents: read & write for this repository.`,
+          'err', false
+        );
+      }
+      return;
+    }
+
+    setStatus(`Connected to ${cfg.owner}/${cfg.repo} @ ${cfg.branch}. Contents write access verified; branch rules may still restrict saves.`, 'ok', false);
   } catch (e) {
     setStatus('Network error: ' + e.message, 'err');
+  } finally {
+    testBtn.disabled = false;
   }
 });
 

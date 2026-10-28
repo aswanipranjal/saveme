@@ -97,7 +97,7 @@ Click the extension icon → **Settings** and fill in:
 | Branch | `main` | Must already exist |
 | File path | `bookmarks.json` | Created on first save if absent |
 
-Click **Test connection** to verify the PAT, repo, and branch are all reachable before saving.
+Click **Test connection** to verify repository and branch access and confirm the PAT has **Contents: write**. The write check creates a small unattached Git blob without changing files or creating commits. Branch protection rules may still restrict bookmark saves.
 
 ### 4. Save your first bookmark
 
@@ -115,7 +115,6 @@ Navigate to any page, click the extension icon, fill in the fields, and click **
 - **PAT stored in plaintext** — the GitHub Personal Access Token is stored unencrypted in the browser profile. Treat it as a low-privilege secret and use a fine-grained PAT scoped to a single repo with Contents access only.
 - **Auto-close may be too fast** — after a successful save the popup closes automatically. It may disappear before you've had time to read the confirmation.
 - **No way to edit without overwrite confirmation** — updating a note or changing a category requires going through the full two-step overwrite flow even for minor edits. Inline editing without confirmation would be more ergonomic.
-- **Test connection doesn't verify write access** — the Settings page tests that the repo and branch exist but doesn't confirm the PAT has write permission. A read-only PAT passes the test and then fails silently on the first save.
 - **Editing the URL field bypasses overwrite detection** — the overwrite warning is set on popup open based on the current tab's URL. If you manually edit the URL field to a URL that's already bookmarked, no warning is shown and it will silently overwrite the existing entry.
 - **Badge may occasionally miss a tab switch** — the background service worker can be terminated by the browser when idle. The badge will catch up on the next tab event, but there is a brief window where it may not reflect the current tab's bookmark status.
 - **PAT expiration causes silent save failures** — GitHub fine-grained PATs can be configured with an expiry date. Once expired, every save will fail at the GitHub sync step with an auth error. The extension has no proactive warning for this; if saves start failing unexpectedly, check whether the PAT has expired and generate a new one.
