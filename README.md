@@ -99,6 +99,19 @@ Click the extension icon → **Settings** and fill in:
 
 Click **Test connection** to verify repository and branch access and confirm the PAT has **Contents: write**. The write check creates a small unattached Git blob without changing files or creating commits. Branch protection rules may still restrict bookmark saves.
 
+#### Reconfigure an existing PAT
+
+If **Test connection** reports `Write access not verified (403)` or `Resource not accessible by personal access token`, check the token's repository access and permissions:
+
+1. Open [GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens](https://github.com/settings/personal-access-tokens) and select your token to edit it.
+2. Confirm **Resource owner** matches the account or organization that owns your bookmark repository. If it is incorrect, create a replacement token for the correct owner.
+3. Under **Repository access**, choose **Only select repositories** and select the repository configured in the extension.
+4. Under **Repository permissions**, set **Contents → Read and write**, then save/update the token. No additional optional permissions are needed for the extension.
+5. For an organization-owned repository, check whether organization approval is required for the token or its updated permissions.
+6. Return to the extension's **Settings** and click **Test connection** again. If you created or regenerated a token, paste the new value into **GitHub Personal Access Token**, then test and click **Save Settings**.
+
+See [GitHub's PAT configuration guide](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) for details. Write permission does not bypass branch protection rules.
+
 ### 4. Save your first bookmark
 
 Navigate to any page, click the extension icon, fill in the fields, and click **Save Bookmark**. The extension will save locally and push a commit to GitHub.
